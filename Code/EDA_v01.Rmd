@@ -1,0 +1,218 @@
+---
+title: "DATA471 Group Report"
+author: "Group 15"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Preparation
+### Source:
+Data is downloaded from 'COVID-19 data portal' at https://www.stats.govt.nz/experimental/covid-19-data-portal?tab=Economic&category=Activity&indicator=New%20Zealand%20Activity%20Index%20(NZAC)
+\
+
+File format is Excel including 2 data tabs: metadata and data.
+
+### Data Description:
+**tab 'metadata'**
+\
+ResourceID: A unique ID generated to represent the indicator.\
+Subject: The indicator category, such as activity or confidence.\
+Title: The indicator name.\
+Description: A short description about the indicator.\
+Notes: A brief additional description about the indicator.\
+Caveats: Includes any footnotes or specific/ detailed description of the indicator.\
+Source: Denotes the source name of the indicator.\
+Source URL: Denotes the source url of the indicator.\
+Modified: Denotes the last modified date of the indicator.\
+Frequency: Indicates the reccurrence of the updates made to the indicator.\
+\
+\
+**tab 'data'**
+\
+ResourceID: A unique ID generated to represent the indicator.\
+Geo: Denotes the factor associated with the indicator series. Not applicable for this dataset.\
+Period: Indicates the date (in the format yyyy-mm-dd) for the timeseries data.\
+Label1: Indicator used to calculate the NZAC.\
+Label2: NA.\
+Label3: NA.\
+Value: The value of the series.\
+Unit: The units associated with this series.\
+Measure: Describes the values measured by the indicator.\
+Mutliplier: Denotes the factor associated with the indicator series.\
+
+## Data Analysis
+
+There is only one row in 'metadata' corresponding to the single ResourceID for NZAC in the 'data' tab. In addition, it indicates the data is monthly frequency. Thus, we will load data from tab 'data' directly without joining to tab 'metadata' for the indicator time series.
+
+```{r readingdata, results = "hold"}
+indicators_data <- readxl::read_xlsx("data/covid_19_data_portal.xlsx", sheet = "data")
+
+cat("Columns Name:\n")
+print(names(indicators_data))
+
+cat("\nList of Indicators:\n")
+print(unique(indicators_data$Label1))
+
+
+cat("\nPeriod range: ")
+cat(paste0(min(indicators_data$Period), " - ", max(indicators_data$Period)))
+
+cat("\nThe first 6 rows:")
+print(head(indicators_data))
+```
+
+### Cleaning data
+
+```{r cleaning}
+# 1. Remove unused columns
+indicators_cleaned <- indicators_data[,c(3, 4, 7)]
+
+# 2. Clean Label1: to remove 'NZAC component - ' part
+indicators_cleaned$Label1 <- gsub('NZAC component - ', '', indicators_cleaned$Label1)
+
+# 3. Convert to date
+indicators_cleaned$Period <- as.Date(indicators_cleaned$Period)
+
+cat("\nThe first 6 rows:")
+knitr::kable(head(indicators_cleaned))
+```
+### Load package for analysis
+```{r loadpackages, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(forecast)
+library(lubridate)
+library(tsibble)
+library(zoo)
+library(timetk)
+library(tsbox)
+```
+
+### Create time series objects for indicators
+
+```{r timeseriesobj}
+# Convert dataset tsibble, zoo
+indicators_ts <- indicators_cleaned %>% as_tsibble(index=Period, key=Label1)
+indicators_zoo <- indicators_cleaned %>% pivot_wider(names_from="Label1", 
+                                                     values_from="Value") %>% read.zoo()
+```
+
+## Plot the Anomaly Diagnostics:
+- The maximum percent of anomalies permitted to be identified is set to 0.2
+\
+There were 2 main periods with anomalies, economic recession 2008 and pandemic 2020, in the following time series: NZAC index, Manufacturing, and new job posted online.
+\
+While the other time series indicators have anomalies during the pandemic 2020 only. They are heavy traffic, ligh traffic, card transaction, and electricity demand.
+\
+New Job posted online had another periods with identified anomalies during 2004 and 2005.
+\
+
+
+\
+
+```{r plot_anomaly, echo=FALSE}
+# install.packages("webshot")
+# webshot::install_phantomjs()
+l_label1 <- unique(indicators_cleaned$Label1)
+
+
+plot_anomaly_diagnostics(indicators_ts[indicators_ts$Label1 %in% l_label1[c(7)],], 
+                         .date_var = Period, .value = Value , 
+                         .facet_vars = Label1, .facet_dir = 'v', 
+                         .anom_size = 0.5, .line_size = 0.3,
+                         .message = FALSE, .title = "Anomaly Diagnostics", 
+                         .x_lab = "Time", .y_lab = "Anual % Change" )
+
+i <- 6
+
+plot_anomaly_diagnostics(indicators_ts[indicators_ts$Label1 %in% l_label1[c(i, i-1)],], 
+                         .date_var = Period, .value = Value , 
+                         .facet_vars = Label1, .facet_dir = 'v', 
+                         .anom_size = 0.5, .line_size = 0.3,
+                         .message = FALSE, .title = "", 
+                         .x_lab = "Time", .y_lab = "Anual % Change" )
+i <- i-2
+plot_anomaly_diagnostics(indicators_ts[indicators_ts$Label1 %in% l_label1[c(i, i-1)],], 
+                         .date_var = Period, .value = Value , 
+                         .facet_vars = Label1, .facet_dir = 'v', 
+                         .anom_size = 0.5, .line_size = 0.3,
+                         .message = FALSE, .title = "", 
+                         .x_lab = "Time", .y_lab = "Anual % Change" )
+i <- i-2
+plot_anomaly_diagnostics(indicators_ts[indicators_ts$Label1 %in% l_label1[c(i, i-1)],], 
+                         .date_var = Period, .value = Value , 
+                         .facet_vars = Label1, .facet_dir = 'v', 
+                         .anom_size = 0.5, .line_size = 0.3,
+                         .message = FALSE, .title = "", 
+                         .x_lab = "Time", .y_lab = "Anual % Change" )
+
+```
+
+## Decomposition
+NZAC:\
+- Trend: \
+- Seasonal: There were high fluctuation in the first half of every year\
+- Noise: significant noise during 2008 recession and 2020 pandemic \
+
+```{r plot_decomposition, echo=FALSE}
+minP <- min(indicators_ts$Period)
+i <- 7
+while (i>0) {
+  obj_ts <- indicators_ts[indicators_ts$Label1 == l_label1[i],] %>% 
+    arrange(Period) %>% dplyr::select(Value) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+  
+  (obj_ts[,1] %>% decompose(type="multiplicative") %>%
+    autoplot() + xlab('Time') %>% 
+    ggtitle(paste0(l_label1[i] , ": Multiplicative decomposition"))) %>%
+    print()
+  
+  i <- i - 1
+}
+```
+### Plot seasonal
+
+```{r plot_seasonal, echo=FALSE}
+i <- 7
+while (i>0) {
+  obj_ts <- indicators_ts[indicators_ts$Label1 == l_label1[i],] %>% 
+      arrange(Period) %>% dplyr::select(Value) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+  
+  (ggseasonplot(obj_ts[,1]) +
+    ggtitle(paste0("Seasonal plot: ", l_label1[i])) +
+    xlab('Time')) %>% print()
+  i <- i - 1
+}
+```
+
+### Plot seasonal pre-Covid
+```{r plot_seasonal_precovid, echo=FALSE}
+
+# pre-covid
+i <- 7
+while (i>0) {
+  obj_ts_pre_covid <- indicators_ts[indicators_ts$Label1 == l_label1[i] & 
+                            year(indicators_ts$Period) < 2020,] %>% 
+      arrange(Period) %>% dplyr::select(Value) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+  
+  (ggseasonplot(obj_ts_pre_covid[,1]) +
+    ggtitle(paste0("Precovid - Seasonal plot: ", l_label1[i])) +
+    xlab('Time')) %>% print()
+  i <- i - 1
+}
+```
+
+
+
+
+
+
+
+
+
+
+
