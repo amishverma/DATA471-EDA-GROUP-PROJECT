@@ -5,11 +5,15 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+# Title
+
+• Project title, names and IDs of students in your project group, date of submission
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Imports
+# Data
 
 ```{r}
 covdf <- read.csv('../Data/covid_19_data_portal.csv')
@@ -27,5 +31,102 @@ jobdf <- readxl::read_excel(path = '../Data/Seek_NZ_data_01-07-2023.xlsx',
 appdf <- readxl::read_excel(path = '../Data/Seek_NZ_data_01-07-2023.xlsx', 
                             sheet = 'SEEK Applications per Ad Index')
 ```
+
+
+
+
+# Background and Data [1-3 pages]
+
+• State which dataset(s) your group worked on, and their source
+
+• Explain briefly why the dataset is of interest, or what questions it could be used to answer; assume that the reader has never heard of your dataset
+
+• State the types of data in the dataset(s) and the structure of the dataset(s). Are the data numerical, categorical, or both? Time series? Coordinates? Diagnostic categories? This does NOT need to be an exhaustive list of every variable, just a few comments on the overall types.
+
+• State how complete the dataset(s) are (i.e. how many missing, any structure to the missing data, whether there are errors in the data)
+
+• If you used more than one dataset, state what steps you had to take to integrate the datasets
+
+
+
+
+# Ethics, Privacy and Security [1-2 pages]
+• Brief discussion of any ethical considerations that apply to your project
+
+• Brief discussion of any privacy concerns that might arise connected to your project
+
+• Brief discussion of what steps you could take to keep your project data and results secure (you do NOT need to carry this out, you just need to talk about it in the report)
+
+### Ethics
+
+The dataset is produced by the Treasury and is made available under the [Crown Copyright, Attribution 4.0 International (CC BY 4.0)](https://www.treasury.govt.nz/publications/nzac/nzac-qa-note) license which allows free use, adaptation and distribution of the data as long as the source (the Treasury) is attributed, and a link to the license is provided.
+
+We note that this dataset is derived from constituent datasets that are publicly available as either full datasets, or as data products. None of these datasets have restrictions on modification or use. 
+
+[[ attribute the constituents here if they aren't linked in the prior section ]] 
+
+There are no obvious ethical issues with the use of this dataset as the Activity Index and constituent datasets are publicly available.
+
+### Privacy
+
+There are no obvious privacy issues with these datasets as these are publicly available. Although we note that some of these are derived from surveys [[non-disclosure of respondents]].
+
+### Security
+
+Securing the database/storage location to ensure the integrity of data.
+
+
+# Exploratory Data Analysis [3-6 pages]
+
+For this section, do NOT try to summarize everything you can find in the dataset(s). Select a subset, highlighting features that you thought were interesting in the data. The plots do not have to be complicated; simple bar charts and scatter plots are fine.
+
+• Several summary tables and/or plots, each describing one, two or three variables in the data that you thought were interesting
+
+• Explain the definitions of the variables in each table/plot
+
+• Comment on the main features of each plot
+
+• Include suitable labels and keys for each plot
+
+• Make sure all plots would be readable if printed in black & white, and adjust the point sizes and/or line thicknesses to improve readability
+
+• Lay out all tables so that they are clearly readable and clearly labelled, and do not use excessive significant figures
+
+• All figures and tables should be numbered and should have captions
+
+
+
+
+# Individual Contributions [1 page]
+
+• State what contribution each member of the group made to the data preparation, the analysis
+and the report
+
+
+
+
+# Overall Report
+
+These marks will be awarded for overall presentation, clarity and quality of the report.
+In particular, marks will be awarded for
+
+• A clear logical layout
+
+• Keeping to the page limits for each section, and using sensible font size
+
+• Key facts being easily located
+
+• Readability of tables and plots
+
+• Clarity of expression [Note: for non-native speakers of English: your English does not need to be perfect, it is the logic and correctness of your presentation that is most important. Nevertheless you are advised to get someone to proof-read your proposal.]
+
+• Clear explanation of how your choice of exploratory plots and tables is relevant to your project, and how the ethical considerations apply to your project (i.e. not just a set of generalities)
+
+• Make sure each time you use/refer to someone else’s work you cite the source in the text, and include the reference in the list at the end. It does not need to be a long list; you may only need one or two references.
+
+• Referencing should be correctly done: a complete list of references must be included. You can use any referencing style you wish; APA is fine if that’s what you like.
+
+The report should be written in a formal style. It should not be an aspirational document about what you would like to do in the next phase; rather, it should state what steps you carried out in the project up to this point, although you may include a few comments at the end about what your next steps might be.
+
 
 
