@@ -59,21 +59,39 @@ appdf <- readxl::read_excel(path = '../Data/Seek_NZ_data_01-07-2023.xlsx',
 
 ### Ethics
 
-The dataset is produced by the Treasury and is made available under the [Crown Copyright, Attribution 4.0 International (CC BY 4.0)](https://www.treasury.govt.nz/publications/nzac/nzac-qa-note) license which allows free use, adaptation and distribution of the data as long as the source (the Treasury) is attributed, and a link to the license is provided.
+The dataset is produced by the Treasury and is made available under the [Crown Copyright, Attribution 4.0 International (CC BY 4.0)](https://www.treasury.govt.nz/publications/nzac/nzac-qa-note) license which allows free use, adaptation and distribution of the data as long as the source (the Treasury) is attributed, and a link to the license is provided (see earlier in the sentence).
 
-We note that this dataset is derived from constituent datasets that are publicly available as either full datasets, or as data products. None of these datasets have restrictions on modification or use. 
+This dataset is derived from constituent datasets that are also publicly available as either full datasets, or as data products. As far as we can tell, none of these datasets have licensing at all - although we believe it is reasonable to expect that the Reserve Bank has permission to utilise these datasets and publicly release their derivative product under their own license, which we will respect in using this data.
 
-[[ attribute the constituents here if they aren't linked in the prior section ]] 
+We also believe that this data was collected with informed consent (as it was mostly either measured values, or through a survey response) and we *assume* that this usage of the data falls within the original bounds of the consent. Here we need to trust that the Reserve Bank has ensured this fact.
 
-There are no obvious ethical issues with the use of this dataset as the Activity Index and constituent datasets are publicly available.
+The primary dataset has clear ownership, licensing/terms of use, and transparency of where the data came from. As long as we adhere to the terms of the license, it seems difficult to identify any ethical issues in the use of this dataset.
+
+[[ ensure that we attribute the constituents here if they aren't linked in the prior section ]] 
 
 ### Privacy
 
-There are no obvious privacy issues with these datasets as these are publicly available. Although we note that some of these are derived from surveys [[non-disclosure of respondents]].
+This dataset is a series of monthly values which was modeled using multiple datasets. We note that some of the constituent datasets are derived from surveys which may have individual-level, identifying data (although we have not seen these datasets publicly available - these are more likely to be seen as data products). As the final, available data is tightly aggregated, we do not see any potential for de-anonymisation or risk of identifying data being released.
+
+Based on the above, we do not believe there to be any obvious privacy issues with these datasets.
 
 ### Security
 
-Securing the database/storage location to ensure the integrity of data.
+In uploading/updating the dataset on the appropriate website, they need to ensure that only the necessary people have the ability to access and modify these files. This is an access control mechanism to limit exposure as to who could potentially upload something malicious, or perhaps more likely, reuse a password and let in a blackhat who may choose to do the same.
+
+We also need to be mindful here that the file itself is the correct one, and not some secret or embargoed data, and that it does not accidentally leak metadata (such as who worked on it, commentary from reviewers, exif data in case of images etc).
+
+When the file has been uploaded, the database or server needs to be well defended to deter opportunistic (or targeted) attacks which may aim to change the file (malware, viruses etc - an integrity issue) or deny access to the file (DDOS - an availability issue). For this, we need a properly configured host, which can be a challenge for some (although hopefully not for either the Reserve Bank or Stats New Zealand).
+
+When a user attempts to access/download the file, we must also ensure the integrity of the data from host to client. There are a few ways of doing this, but the most common would be by employing HTTPS in an attempt to thwart man-in-the-middle attacks. Additionally we might provide encryption, or a verification hash. A user might also elect to use a VPN or TOR-like browser, and a firewall and/or anti-virus. 
+
+In the specific case of this dataset, StatsNZ offers HTTPS by default, although no verification hash we are aware of. It is difficult to know the specifics of their defenses (which is a good thing). The data is provided in a .csv file, which is a fairly safe filetype given it is pure text data (instead of something like a .pdf or office documents which can utilise macros).
+
+We do not observe any particular security issues related to this dataset.
+
+For our project, the main source of security issues would be in the communication and sharing of files between group members. We have set up a Github repo in order to do this sharing. The repo mitigates many of these potential issues that we might otherwise have in sharing files by email or discord. The repo also features strict access controls in the form of a white-list, and Github itself requires authentication to access (usually in the form of a ssh key or personal access token) which disallows contributions from bad actors (excluding anyone working a Github/Microsoft that is). Although, if one was conniving enough, the information contained in the Github repo may allow someone to do some social engineering, although the attacker would likely have to put in a lot of effort into a (very) low value target.
+
+We do not have any specific counter-measures related to our project outside of good internet hygiene (don't go visiting dodgy sites, or clicking on emails from Nigerian Princes), use a firewall and/or anti-virus, knowing who your group members are, and limiting physical access to your devices.
 
 
 # Exploratory Data Analysis [3-6 pages]
