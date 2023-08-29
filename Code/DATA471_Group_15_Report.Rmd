@@ -112,7 +112,213 @@ For this section, do NOT try to summarize everything you can find in the dataset
 
 • All figures and tables should be numbered and should have captions
 
+## Preprocessing data
 
+• Select relevant columns for the indicators
+
+• Convert date column to date data type
+
+• All the time series data are monthly frequency, with different start and end month.
+
+• Date value as the start of the month: covdf, pmidf, jobdf, and appdf
+
+• Date value as the end of the month: anzdf
+
+Thus, the date column of anzdf will be processed to the first date of the corresponding month.
+
+Duration of each time series:
+
+• convdf:10/2003 - 06/2023
+
+• anzdf: 04/2008 - 07/2023
+
+• pmi:   08/2002 - 06/2023
+
+• jobdf: 01/2002 - 06/2023
+
+• appdf: 02/2008 - 06/2023
+
+```{r preprocess}
+# Convert to date
+covdf <- covdf[covdf$series_name == 'New Zealand Activity Index (NZAC)', c("parameter", "value")]
+colnames(covdf) <- c("DATE", "NZAC")
+covdf$DATE <- as.Date(covdf$DATE, "%Y-%m-%d")
+
+anzdf <- anzdf[,c("Date", "ActualValue")]
+colnames(anzdf) <- c("DATE", "ACT_OUTLOOK")
+anzdf$DATE <- paste0(substr(anzdf$DATE, 1, 8), '01')
+anzdf$DATE <- as.Date(anzdf$DATE, "%Y.%m.%d")
+
+colnames(pmidf) <- gsub(' ', '_', colnames(pmidf))
+pmidf$DATE <- as.Date(pmidf$DATE)
+
+jobdf$DATE <- as.Date(jobdf$DATE)
+jobdf <- jobdf[jobdf$STATE == "Total", c(1, 4)]
+
+
+appdf$DATE <- as.Date(appdf$DATE)
+appdf <- appdf[appdf$STATE == "Total", c(1, 4)]
+
+alldf <- merge(covdf, anzdf, by="DATE", all = T)
+alldf <- merge(alldf, pmidf, by="DATE", all = T)
+alldf <- merge(alldf, jobdf, by="DATE", all = T)
+alldf <- merge(alldf, appdf, by="DATE", all = T)
+```
+
+## Statistical summary of time series data
+
+After the data is processed and merged into a single dataset, we look at the summary statistic of all the indexes. As the available data of indexes are different in start and end period, the dataset includes missing data points for certain indexes.
+
+```{r statsum}
+
+summary(alldf)
+
+```
+
+## Time series Visualization 
+
+The plots below are showing the indexes over the period. They are grouped to show in the same plot for the relating meaning and scaling. Thus, there are 3 groups including 
+
+• activity indexes (NZAC index and activity outlook index)
+
+• production indexes (PMI, PRODUCTION, EMPLOYMENT, NEW ORDERS, FINISHED STOCKS, AND DELIVERIES)
+
+• SEEK jobs indexes (Job Ads volumes index and Job application per ads volume index)
+
+As per out project question regarding the possibility of NZAC index prediction. Thus NZAC index is base line for analysis. And we try to figure out  the other correlation between other indicators and NZAC index.
+
+There are many missing data points for Activity outlook index over the period. The pattern was fluctuating significantly.
+
+In the production group, all the indexes provide the similar pattern over the period. Thus, we can keep one index from this group for further analyzing on how this group index correlated to the NZAC index.
+
+In the job group, job applications per ads volumes index is derived from the other index (ads volumes index). This explains the contrast patterns between them. During recession 2008 and pandemic 2020, the ads volumes index decreased dramatically, where as the job applications per ads volumes index increased accordingly. Likewise, post-pandemic period recorded the opposite trend of these two indexes the other way arround.
+
+```{r viz, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+library(forecast)
+```
+```{r, message=FALSE}
+
+ggplot(data = alldf, aes(DATE)) +
+  geom_line(aes(y=NZAC, colour='NZAC')) +
+  geom_line(aes(y=ACT_OUTLOOK, colour='ACT_OUTLOOK')) +
+  ylab('Index (%)') + 
+  theme_classic()
+
+
+ggplot(data = alldf, aes(DATE)) +
+  geom_line(aes(y=PMI, colour='PMI')) +
+  geom_line(aes(y=PRODUCTION, colour='PRODUCTION')) +
+  geom_line(aes(y=EMPLOYMENT, colour='EMPLOYMENT')) +
+  geom_line(aes(y=NEW_ORDERS, colour='NEW ORDERS')) +
+  geom_line(aes(y=FINISHED_STOCKS, colour='FINISHED STOCKS')) +
+  geom_line(aes(y=DELIVERIES, colour='DELIVERIES')) +
+  ylab('Index (%)') + 
+  theme_classic()
+
+ggplot(data = alldf, aes(DATE)) +
+  geom_line(aes(y=ADS_SA_INDEX, colour='Job Ads volumes index')) +
+  geom_line(aes(y=CA_SA_INDEX, colour='Job Applications per ads volumes index')) +
+  ylab('Index (%)') + 
+  theme_classic()
+
+```
+
+### Correlation plotting
+```{r correlation}
+alldf <- merge(covdf, anzdf, by="DATE", all.x = T)
+alldf <- merge(alldf, pmidf, by="DATE", all.x = T)
+alldf <- merge(alldf, jobdf, by="DATE", all.x = T)
+alldf <- merge(alldf, appdf, by="DATE", all.x = T)
+library(ggcorrplot)
+corrmatrix <- alldf %>% select(NZAC, ACT_OUTLOOK, PMI, PRODUCTION,
+                               EMPLOYMENT, NEW_ORDERS, FINISHED_STOCKS,
+                               DELIVERIES, ADS_SA_INDEX, CA_SA_INDEX) %>% cor()
+corrmatrix
+
+corrmatrix_2 <- alldf %>% select(NZAC, PMI, PRODUCTION,
+                               EMPLOYMENT, NEW_ORDERS, FINISHED_STOCKS,
+                               DELIVERIES, ADS_SA_INDEX) %>% cor()
+corrmatrix_2
+
+ggcorrplot(corrmatrix_2,
+           hc.order = TRUE,
+           type = "lower",
+           lab = FALSE)
+```
+
+### Decomposition Visualization
+
+Following plots are showing the time series decomposition for each index. 
+
+NZAC index pattern shows the impact of 3 main events during the period. Those were economic recession in 2008, the pandemic starting at the end of 2020 and the recovery after the pandemic since 2022 until now. Both 2008 recession and 2020 pandemic events caused a plunge in the NZAC index, but their patterns were different. The data shows that the NZAC index gradually decreased during 2008 bottomed at around -3%, while pointly drop to -10%. Post-pandemic recovers significantly in 2021 which peaked at over 30% (as it compares with last year drop -10%). 
+
+The seasonal patterns shows two hikes every year.
+
+```{r}
+minP <- min(covdf$DATE)
+covts <- covdf %>% arrange(DATE) %>% dplyr::select(NZAC) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+
+(covts[,1] %>% decompose(type="multiplicative") %>%
+    autoplot() + xlab('Time') %>% 
+    ggtitle("NZAC Index: Multiplicative decomposition")) %>%
+    print()
+
+(ggseasonplot(covts[,1]) +
+    ggtitle("Seasonal plot: NZAC Index") +
+    xlab('Time')) %>% print()
+
+covts_pre <- covdf %>% filter(year(DATE) < 2020) %>% arrange(DATE) %>% dplyr::select(NZAC) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+
+(ggseasonplot(covts_pre[,1]) +
+    ggtitle("Pre-pandemic - Seasonal plot: NZAC Index") +
+    xlab('Time')) %>% print()
+```
+
+The PMI index trend is similar to NZAC index through out the period. Although the data is less smooth than the NZAC, this causes a recognizable more noise through out the entire period. 
+
+The seasonal patterns shows two hikes every year, with one dip in the middle of the year.
+
+
+Post pandemic, NZAC currently is flatten at around 0, while the PML is downward.
+
+```{r}
+minP <- min(pmidf$DATE)
+pmits <- pmidf %>% arrange(DATE) %>% dplyr::select(PMI) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+
+(pmits[,1] %>% decompose(type="multiplicative") %>%
+    autoplot() + xlab('Time') %>% 
+    ggtitle("PMI Index: Multiplicative decomposition")) %>%
+    print()
+
+
+(ggseasonplot(pmits[,1]) +
+    ggtitle("Seasonal plot: PMI Index") +
+    xlab('Time')) %>% print()
+```
+
+Jobs ads volumes index shows a clear upward trend in the period. Likewise, there are two pattern due to the two mentioned big events, recording the short-time downward before continuing climb up later on.
+
+There is also clear seasonal patterns. There were big noise (remainder) during pandemic.
+
+Seasonal pattern is different from the other two indexes. It rises at the beginning of each year, then plummet to a dip before rising a gain to the end of the year.
+
+```{r}
+minP <- min(jobdf$DATE)
+jobts <- jobdf %>% arrange(DATE) %>% dplyr::select(ADS_SA_INDEX) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+
+(jobts[,1] %>% decompose(type="multiplicative") %>%
+    autoplot() + xlab('Time') %>% 
+    ggtitle("Job ads volumes Index: Multiplicative decomposition")) %>%
+    print()
+
+(ggseasonplot(jobts[,1]) +
+    ggtitle("Seasonal plot: Job Ads Volumes Index") +
+    xlab('Time')) %>% print()
+```
 
 
 # Individual Contributions [1 page]
