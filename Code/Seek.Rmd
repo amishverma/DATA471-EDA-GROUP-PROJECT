@@ -1,0 +1,200 @@
+---
+title: "SEEK"
+author: "Amish Verma"
+date: "2023-09-01"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r}
+# Load necessary libraries
+library(readxl)
+library(ggplot2)
+library(stats)
+library(corrplot)
+
+# Read the Excel sheets into data frames
+jobdf <- readxl::read_excel(path = '../Data/Seek_NZ_data_01-07-2023.xlsx', 
+                            sheet = 'SEEK Job Ad Index')
+
+appdf <- readxl::read_excel(path = '../Data/Seek_NZ_data_01-07-2023.xlsx', 
+                            sheet = 'SEEK Applications per Ad Index')
+
+
+# Converting dates into dates
+head(jobdf)
+jobdf$DATE <- as.Date(jobdf$DATE)
+appdf$DATE <- as.Date(appdf$DATE)
+
+
+# Check for missing values
+sum(is.na(jobdf))
+sum(is.na(appdf))
+
+# Check for duplicates
+sum(duplicated(jobdf))
+sum(duplicated(appdf))
+
+# Check data types
+str(jobdf)
+str(appdf)
+
+
+
+# Summary statistics
+summary(jobdf)
+
+summary(appdf)
+
+```
+*The term "seasoanlly adjusted over here means the data has been modified to eliminate the effect of seasonal patterns, making it easier to observe the fundamental trends over the time*
+
+
+## Jobs
+
+, the mean is 0.015 or 1.5% which means that there has been an average increase of 1.5% in job ad volumes from month to month over the period of time
+
+* In the ADS_TREND_GROWTH_MONTH, the mean is 1.0%, indicating that the average month on month growth rate in the trend component of the job ad volumes. The trend component is a smooth version of original data, which only captures long term changes and filter out seasonal fluctuations and random noise
+
+
+## Applicatins per job ad
+
+### CA_SA_GROWTH_MONTH: 0.009 or 0.9%
+
+* Seasonally adjusted growth : This metric represents the average monthly growth rate in the seasonally adjusted "Applications per Ad" index. Seasonal adjustments remove the effects of seasonal patterns in the data, making it easier to observe fundamental trends and changes over time.
+
+
+### CA_TREND_GROWTH_MONTH: 0.004 or 0.4%
+
+* Trend growth : This metric represents the average monthly growth rate in the trend component of the "Applications per Ad" index. The trend component captures long term changes while filtering out seasonal and random fluctuations.
+
+```{r}
+# Plot for jobdf (ADS_SA_INDEX)
+ggplot(jobdf, aes(x=DATE, y=ADS_SA_INDEX)) + geom_line() + ggtitle("Time Series of ADS_SA_INDEX (Job Ads)")
+
+# Plot for appdf (CA_SA_INDEX)
+ggplot(appdf, aes(x=DATE, y=CA_SA_INDEX)) + geom_line() + ggtitle("Time Series of CA_SA_INDEX (Applications per Ad)")
+
+
+```
+
+* The two major fluctuations in both the graphs are related due to economic recession in 2018 and the pandemic in 2020.
+
+* Thee jobs ads decreases during the recession and pandemic which leads to the sudden increase in more applications per job ads.
+
+
+## Seasonal decomposition
+
+```{r}
+# Decompose the 'ADS_SA_INDEX' time series from jobdf
+job_stl <- stl(ts(jobdf$ADS_SA_INDEX, frequency=12), s.window="periodic")
+plot(job_stl)
+
+# Decompose the 'CA_SA_INDEX' time series from appdf
+app_stl <- stl(ts(appdf$CA_SA_INDEX, frequency=12), s.window="periodic")
+plot(app_stl)
+
+```
+
+
+## Correlation anaylsis
+```{r}
+# Merge the data frames based on DATE
+merged_df <- merge(jobdf, appdf, by="DATE")
+
+# Calculate the correlation matrix
+cor_matrix <- cor(merged_df[,c("ADS_SA_INDEX", "CA_SA_INDEX", "ADS_SA_GROWTH_MONTH", "CA_SA_GROWTH_MONTH")])
+
+# Show the correlation matrix
+print(cor_matrix)
+
+
+```
+
+
+
+```{r}
+# Generate the heatmap 
+corrplot(cor_matrix, method="color", 
+         addCoef.col="black") # Add correlation coefficients
+
+```
+
+## The correlation matrix and heatmap show the following relationships between the selected variables:
+
+* ADS_SA_INDEX and CA_SA_INDEX: A low correlation of 0.05, indicating that the job ad index and the applications per ad index are not strongly related in terms of their levels.
+
+* ADS_SA_GROWTH_MONTH and CA_SA_GROWTH_MONTH: A negative correlation of \text{-}0.304, suggesting that when the monthly growth rate of job ads goes up, the monthly growth rate of applications per ad tends to go down, or vice versa.
+
+* ADS_SA_INDEX and ADS_SA_GROWTH_MONTH: A correlation of 0.050, indicating little to no relationship between the level and monthly growth rate of job ads.
+
+```{r}
+# Time Series Plot for ADS_SA_INDEX by STATE
+ggplot(jobdf, aes(x=DATE, y=ADS_SA_INDEX, color=STATE)) +
+  geom_line() +
+  ggtitle("Time Series of ADS_SA_INDEX by STATE") +
+  xlab("Date") +
+  ylab("ADS_SA_INDEX")
+
+# Time Series Plot for CA_SA_INDEX by STATE
+ggplot(appdf, aes(x=DATE, y=CA_SA_INDEX, color=STATE)) +
+  geom_line() +
+  ggtitle("Time Series of CA_SA_INDEX by STATE") +
+  xlab("Date") +
+  ylab("CA_SA_INDEX")
+
+
+
+```
+# mONTLY GROWTH RATE
+
+
+```{r}
+
+head(jobdf)
+
+```
+
+```{r}
+library(dplyr)
+jobdf$YEAR <- format(as.Date(jobdf$DATE), "%Y")
+appdf$YEAR <- format(as.Date(appdf$DATE), "%Y")
+
+head(jobdf)
+# Calculate mean monthly growth rates for jobdf
+mean_growth_jobdf_yearly <- jobdf %>%
+  group_by(STATE, YEAR) %>%
+  summarise(Mean_ADS_SA_GROWTH_MONTH = mean(ADS_SA_GROWTH_MONTH, na.rm=TRUE))
+
+# Calculate mean monthly growth rates for appdf
+mean_growth_appdf_yearly <- appdf %>%
+  group_by(STATE, YEAR) %>%
+  summarise(Mean_CA_SA_GROWTH_MONTH = mean(CA_SA_GROWTH_MONTH, na.rm=TRUE))
+
+# Display mean growth rates
+print(mean_growth_jobdf_yearly)
+print(mean_growth_appdf_yearly)
+
+# Plot the mean monthly growth rates for each year for different states (Job Ads)
+ggplot(mean_growth_jobdf_yearly, aes(x=YEAR, y=Mean_ADS_SA_GROWTH_MONTH, color=STATE)) +
+  geom_line() +
+  geom_point() +
+  ggtitle("Mean Monthly Growth Rates by Year for Different States (Job Ads)") +
+  xlab("Year") +
+  ylab("Mean Monthly Growth Rate")
+
+# Plot the mean monthly growth rates for each year for different states (Applications per Ad)
+ggplot(mean_growth_appdf_yearly, aes(x=YEAR, y=Mean_CA_SA_GROWTH_MONTH, color=STATE)) +
+  geom_line() +
+  geom_point() +
+  ggtitle("Mean Monthly Growth Rates by Year for Different States (Applications per Ad)") +
+  xlab("Year") +
+  ylab("Mean Monthly Growth Rate")
+
+```
+
+
+
+* As we can see in the (Ads_SA_Growth_Month)
