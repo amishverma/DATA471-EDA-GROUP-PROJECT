@@ -1,21 +1,116 @@
 ---
 title: "DATA471 Group Report"
-author: "Group 15: Izzy Bremnar, Tram Chau, Kim Downing and Amish Verma"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+bibliography: refs.bib
+csl: vancouver.csl
 ---
 
-# Title
+# Authors: Group 15
 
-• Project title, names and IDs of students in your project group, date of submission
+* Izzy Bremnar ([[]]):
+  * Background and data section, and supervisor representative
+
+* Tram Chau ([[]]):
+  * EDA section, discord/zoom, kanban and mind maps
+
+* Kim Downing (300 639 199):
+  * Ethics, privacy and security section, project manager and editor
+
+* Amish Verma ([[]]):
+  * EDA section and git
+
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE,
+                      warning = FALSE)
 ```
 
-# Data
 
-```{r}
+# Background and Data
+
+In our project, we are focusing on a time series dataset which is part of Statistics New Zealand's COVID-19 data portal @stats_c19 - specifically we have picked the New Zealand Activity Index (NZAC). The NZAC was created in 2020 by the Treasury @NZAC_tn, but has since been extended to 2004 using historical data. This dataset is a monthly index that provides a summary of the eight constituent datasets which include data on: consumer spending, job vacancies, job-seeker numbers, electricity generation, and traffic data from both public and private institutions such as the Ministry of Social Development, ANZ and SEEK @NZAC_tn.
+
+In this time series index, the eight component datasets are all also numerical. The NZAC is constructed using a weighted average of the components, and aims to show the common movements across the constituent datasets @NZAC_tn. The resultant values are then scaled so that it has the same mean and variance as year-on-year Real Gross Domestic Product growth (as the NZAC is intended as a proxy for the RGDP @NZAC_tn). This style of activity index became common during the COVID-19 pandemic, when decision-makers in government and business were interested in higher frequency data than has previously been on offer. The NZAC is based on similar indices previously developed by the Chicago and New York Federal Reserves in the United States of America @NZAC_tn. In the United States of America, these measures provide weekly and monthly activity indices for the country @NZAC_tn. The New Zealand Treasury utilises the same weighted average method for the NZAC @NZAC_tn.
+
+The NZAC is important as it is higher frequency than most economic datasets. Measures of GDP and the unemployment rate are released quarterly and can be revised for up to 2 years following release. It is well understood in the economics sector that accurate data can carry a 6-to-18-month lag, especially when considering the whole economy @NZAC_tn. These smaller indexes enable a faster release of data that is more up to date. The NZAC is a particularly useful dataset as it aims to reduce the noise that can be present in the component datasets, if used alone. The NZAC is highly correlated with Real GDP, which means that it could be helpful when making economic forecasts, or if you needed to know how the economy was performing before the quarterly GDP updates are released @NZAC_tn.
+
+The NZAC dataset allows you to tell a clear economic story, especially when you look at how it corresponds to its component datasets and data from different economic sectors e.g., construction or tourism. There are clear features in the data which mark events such as the 2008 Global Financial Crisis and the impacts of the major COVID-19 lockdowns in New Zealand. This data may be of use in addressing questions about how economic activity has changed before, and after COVID. We may be able to look at which components have become more significant, or how the correlation to other datasets has changed.
+
+There are no significant periods of missing date in the main index that we used, however some of the other data that we are using to assess the correlation of the NZAC does have some missing data (see the EDA section for more information). We performed joins on these datasets by using the date column as the join target (after some massaging for one dataset which we will detail in the EDA section).
+
+
+# Ethics, Privacy and Security
+
+### Ethics
+
+The dataset is produced by the Treasury and published as part of the Statistics New Zealand COVID-19 data portal. This data is made available under the [Crown Copyright, Attribution 4.0 International (CC BY 4.0)](https://www.treasury.govt.nz/publications/nzac/nzac-qa-note) license which allows free use, adaptation and distribution of the data as long as the source is attributed, and a link to the license is provided (see earlier in the sentence).
+
+This dataset is derived from constituent datasets that are also publicly available as either full datasets, or as data products. As far as we can tell, none of these datasets have licensing at all - although we believe it is reasonable to expect that Treasury has permission to utilise these datasets and publicly release their derivative product under their own license, which we will respect in using this data.
+
+We also believe that this data was collected with informed consent (as it was mostly either measured values, or through a survey response) and we *assume* that this usage of the data falls within the original bounds of the consent. Here we need to trust that the Treasury has ensured this fact.
+
+The primary dataset has clear ownership, licensing/terms of use, and transparency of where the data came from. As long as we adhere to the terms of the license, it seems difficult to identify any ethical issues in the use of this dataset.
+
+
+### Privacy
+
+This dataset is a series of monthly values which is a combination of multiple datasets. We note that some of the constituent datasets are derived from surveys which may have individual-level, identifying data (although we have not seen these datasets publicly available - these are more likely to be seen as data products). As the final, available data is tightly aggregated, we do not see any potential for de-anonymisation or risk of identifying data being released.
+
+Based on the above, we do not believe there to be any obvious privacy issues with these datasets.
+
+
+### Security
+
+In uploading/updating the dataset on the appropriate website, the organisation needs to ensure that only the necessary people have the ability to access and modify these files. This is an access control mechanism to limit exposure as to who could potentially upload something malicious, or perhaps more likely, reuse a password and let in a blackhat who may choose to do the same.
+
+We also need to be mindful here that the file itself is the correct one, and not some secret or embargoed data, and that it does not accidentally leak metadata (such as who worked on it, commentary from reviewers, exif data in case of images etc).
+
+When the file has been uploaded, the database or server needs to be well defended to deter opportunistic (or targeted) attacks which may aim to change the file (malware, viruses etc - an integrity issue) or deny access to the file (DDOS - an availability issue). For this, we need a properly configured host, which can be a challenge for some (although hopefully not for either the Reserve Bank or Stats New Zealand).
+
+When a user attempts to access/download the file, we must also ensure the integrity of the data from host to client. There are a few ways of doing this, but the most common would be by employing HTTPS in an attempt to thwart man-in-the-middle attacks. Additionally we might provide encryption, or a verification hash. A user might also elect to use a VPN or TOR-like browser, and a firewall and/or anti-virus. 
+
+In the specific case of this dataset, StatsNZ offers HTTPS by default, although no verification hash we are aware of. It is difficult to know the specifics of their defenses (which is a good thing). The data is provided in a .csv file, which is a fairly safe filetype given it is pure text data (instead of something like a .pdf or office documents which can utilise macros).
+
+We do not observe any particular security issues related to this dataset.
+
+For our project, the main source of security issues would be in the communication and sharing of files between group members. We have set up a Github repository in order to do this sharing. The repository mitigates many of these potential issues that we might otherwise have in sharing files by email or discord. The repository also features strict access controls in the form of a white-list, and Github itself requires authentication to access (usually in the form of a ssh key or personal access token) which disallows contributions from bad actors (excluding anyone working a Github/Microsoft that is). Although, if one was conniving enough, the information contained in the Github repository may allow someone to do some social engineering, although the attacker would likely have to put in a lot of effort into a (very) low value target.
+
+We do not have any specific counter-measures related to our project outside of good internet hygiene (don't go visiting dodgy sites, or clicking on emails from Nigerian royalty), use a firewall and/or anti-virus, knowing who your group members are, and limiting physical access to your devices.
+
+
+# Exploratory Data Analysis
+
+### Data and Preparation
+
+In our analysis, we utilised the primary NZAC data, and four component datasets which included the ANZ Activity Outlook, BusinessNZ's Performance of Manufacturing Index, SEEK Job Ad Index and the SEEK Applications per Ad Index. In preparing the data for analysis, we first needed to:
+
+* Select the relevant columns for each indicator
+* Convert the date columns to the 'date' date type
+* Ensure all of the dates are the same frequency and date (or massage them to such a state):
+  * The ANZ Activity Outlook had date values for the end of each month - we converted these to the first date of the next month for consistency with the rest of the datasets.
+  * All datasets have a monthly frequency and all other datasets were dated at the start of the month.
+  
+The duration of these datasets are as seen in Table 1 below:
+```{r, include=FALSE}
+dur <- data.frame(Dataset=c('NZAC', 'ANZ Activity Outlook', 'BusinessNZ Performance Manufacturing Index', 
+                              'SEEK Job Ad Index', 'SEEK Applications per Ad Index'),
+                    "Start Date"=c('October 2003', 'April 2008', 'August 2002', 'January 2002', 'Febuary 2008'),
+                    "End Date"=c('June 2023', 'July 2023', 'June 2023', 'June 2023', 'June 2023'))
+```
+
+```{r data_duration}
+pander::pander(dur, 
+         split.table=Inf,
+         caption='Dataset durations')
+```
+
+Most of these datasets have coverage between 2008 and 2023, with a few extending past that, back to 2002 or 2003.
+
+```{r import, include=FALSE}
 covdf <- read.csv('../Data/covid_19_data_portal.csv')
 
 anzdf <- read.csv('../Data/new-zealand.anz-activity-outlook.csv', 
@@ -32,124 +127,10 @@ appdf <- readxl::read_excel(path = '../Data/Seek_NZ_data_01-07-2023.xlsx',
                             sheet = 'SEEK Applications per Ad Index')
 ```
 
-
-
-
-# Background and Data [1-3 pages]
-
-• State which dataset(s) your group worked on, and their source
-
-• Explain briefly why the dataset is of interest, or what questions it could be used to answer; assume that the reader has never heard of your dataset
-
-• State the types of data in the dataset(s) and the structure of the dataset(s). Are the data numerical, categorical, or both? Time series? Coordinates? Diagnostic categories? This does NOT need to be an exhaustive list of every variable, just a few comments on the overall types.
-
-• State how complete the dataset(s) are (i.e. how many missing, any structure to the missing data, whether there are errors in the data)
-
-• If you used more than one dataset, state what steps you had to take to integrate the datasets
-
-We are working on the time series dataset. As our groups specific series, we have used the New Zealand Activity Index (NZAC). This is a part of the Covid-19 Dataset and was first used in 2020 but has been extended using historical data to 2004. It is a monthly index that is a summary dataset that pulls on eight constituent datasets. These datasets include consumer spending, job vacancies, electricity generation, and traffic data. The data is sourced from both public and private institutions (e.g. Ministry of Social Development, ANZ).
-
-This is a time-series index, where the 8 component datasets are all numerical time-series. It is constructed using a weighted average of the components, and it aims to show the common movements across the constituent datasets. It is then scaled so that it has the same mean and variance as year-on-year Real Gross Domestic Product (RGDP) growth. This style of activity index became common during the covid-19 pandemic, when decision-makers in government and business were interested in higher frequency data than has previously been on offer. The NZAC is based on similar indices in the United States of America, which were developed by the Chicago Federal Reserve and the New York Federal Reserve. These provide weekly and monthly activity indices for the US and use the same weighted average method that is used by the Treasury for the NZAC.
-
-This dataset is important as it is higher frequency than most economic datasets. Measures of GDP and the unemployment rate are released quarterly and can be revised for up to 2 years following the release. It is well understood in the economics sector that accurate data can carry a 6-to-18-month lag, especially when considering the whole economy. These smaller indexes enable a faster release of data that is more up to date but reduces the noise that can be present in the component data sets. The NZAC is highly correlated with Real GDP, which means that it could be helpful when making economic forecasts, or if you needed to know how the economy was performing before the quarterly GDP updates are released.
-
-The dataset allows you to tell a clear economic story, especially when you look at how it corresponds to its component datasets, and data from different economic sectors e.g., construction or tourism. You can clearly see features such as the 2008 global financial crisis, and the impact of the major covid-19 lockdowns in New Zealand. This could support answering questions about how economic activity has changed after covid, by looking at which components have become more significant, or how the correlation to other datasets has changed post-covid. 
-
-There are no significant periods of missing date in the main index that we used, however some of the other data that we are using to assess the correlation of the NZAC does have some missing data. We did not have to directly combine the NZAC with the other datasets, as they are all time series, so we can merge based on the date-time index. 
-
-
-
-# Ethics, Privacy and Security [1-2 pages]
-• Brief discussion of any ethical considerations that apply to your project
-
-• Brief discussion of any privacy concerns that might arise connected to your project
-
-• Brief discussion of what steps you could take to keep your project data and results secure (you do NOT need to carry this out, you just need to talk about it in the report)
-
-### Ethics
-
-The dataset is produced by the Treasury and is made available under the [Crown Copyright, Attribution 4.0 International (CC BY 4.0)](https://www.treasury.govt.nz/publications/nzac/nzac-qa-note) license which allows free use, adaptation and distribution of the data as long as the source (the Treasury) is attributed, and a link to the license is provided (see earlier in the sentence).
-
-This dataset is derived from constituent datasets that are also publicly available as either full datasets, or as data products. As far as we can tell, none of these datasets have licensing at all - although we believe it is reasonable to expect that the Reserve Bank has permission to utilise these datasets and publicly release their derivative product under their own license, which we will respect in using this data.
-
-We also believe that this data was collected with informed consent (as it was mostly either measured values, or through a survey response) and we *assume* that this usage of the data falls within the original bounds of the consent. Here we need to trust that the Reserve Bank has ensured this fact.
-
-The primary dataset has clear ownership, licensing/terms of use, and transparency of where the data came from. As long as we adhere to the terms of the license, it seems difficult to identify any ethical issues in the use of this dataset.
-
-[[ ensure that we attribute the constituents here if they aren't linked in the prior section ]] 
-
-### Privacy
-
-This dataset is a series of monthly values which was modeled using multiple datasets. We note that some of the constituent datasets are derived from surveys which may have individual-level, identifying data (although we have not seen these datasets publicly available - these are more likely to be seen as data products). As the final, available data is tightly aggregated, we do not see any potential for de-anonymisation or risk of identifying data being released.
-
-Based on the above, we do not believe there to be any obvious privacy issues with these datasets.
-
-### Security
-
-In uploading/updating the dataset on the appropriate website, they need to ensure that only the necessary people have the ability to access and modify these files. This is an access control mechanism to limit exposure as to who could potentially upload something malicious, or perhaps more likely, reuse a password and let in a blackhat who may choose to do the same.
-
-We also need to be mindful here that the file itself is the correct one, and not some secret or embargoed data, and that it does not accidentally leak metadata (such as who worked on it, commentary from reviewers, exif data in case of images etc).
-
-When the file has been uploaded, the database or server needs to be well defended to deter opportunistic (or targeted) attacks which may aim to change the file (malware, viruses etc - an integrity issue) or deny access to the file (DDOS - an availability issue). For this, we need a properly configured host, which can be a challenge for some (although hopefully not for either the Reserve Bank or Stats New Zealand).
-
-When a user attempts to access/download the file, we must also ensure the integrity of the data from host to client. There are a few ways of doing this, but the most common would be by employing HTTPS in an attempt to thwart man-in-the-middle attacks. Additionally we might provide encryption, or a verification hash. A user might also elect to use a VPN or TOR-like browser, and a firewall and/or anti-virus. 
-
-In the specific case of this dataset, StatsNZ offers HTTPS by default, although no verification hash we are aware of. It is difficult to know the specifics of their defenses (which is a good thing). The data is provided in a .csv file, which is a fairly safe filetype given it is pure text data (instead of something like a .pdf or office documents which can utilise macros).
-
-We do not observe any particular security issues related to this dataset.
-
-For our project, the main source of security issues would be in the communication and sharing of files between group members. We have set up a Github repo in order to do this sharing. The repo mitigates many of these potential issues that we might otherwise have in sharing files by email or discord. The repo also features strict access controls in the form of a white-list, and Github itself requires authentication to access (usually in the form of a ssh key or personal access token) which disallows contributions from bad actors (excluding anyone working a Github/Microsoft that is). Although, if one was conniving enough, the information contained in the Github repo may allow someone to do some social engineering, although the attacker would likely have to put in a lot of effort into a (very) low value target.
-
-We do not have any specific counter-measures related to our project outside of good internet hygiene (don't go visiting dodgy sites, or clicking on emails from Nigerian Princes), use a firewall and/or anti-virus, knowing who your group members are, and limiting physical access to your devices.
-
-
-# Exploratory Data Analysis [3-6 pages]
-
-For this section, do NOT try to summarize everything you can find in the dataset(s). Select a subset, highlighting features that you thought were interesting in the data. The plots do not have to be complicated; simple bar charts and scatter plots are fine.
-
-• Several summary tables and/or plots, each describing one, two or three variables in the data that you thought were interesting
-
-• Explain the definitions of the variables in each table/plot
-
-• Comment on the main features of each plot
-
-• Include suitable labels and keys for each plot
-
-• Make sure all plots would be readable if printed in black & white, and adjust the point sizes and/or line thicknesses to improve readability
-
-• Lay out all tables so that they are clearly readable and clearly labelled, and do not use excessive significant figures
-
-• All figures and tables should be numbered and should have captions
-
-## Preprocessing data
-
-• Select relevant columns for the indicators
-
-• Convert date column to date data type
-
-• All the time series data are monthly frequency, with different start and end month.
-
-• Date value as the start of the month: covdf, pmidf, jobdf, and appdf
-
-• Date value as the end of the month: anzdf
-
-Thus, the date column of anzdf will be processed to the first date of the corresponding month.
-
-Duration of each time series:
-
-• convdf:10/2003 - 06/2023
-
-• anzdf: 04/2008 - 07/2023
-
-• pmi:   08/2002 - 06/2023
-
-• jobdf: 01/2002 - 06/2023
-
-• appdf: 02/2008 - 06/2023
-
-```{r preprocess}
+```{r preprocess, include=FALSE}
 # Convert to date
-covdf <- covdf[covdf$series_name == 'New Zealand Activity Index (NZAC)', c("parameter", "value")]
+covdf <- covdf[covdf$series_name == 'New Zealand Activity Index (NZAC)', 
+               c("parameter", "value")]
 colnames(covdf) <- c("DATE", "NZAC")
 covdf$DATE <- as.Date(covdf$DATE, "%Y-%m-%d")
 
@@ -164,9 +145,9 @@ pmidf$DATE <- as.Date(pmidf$DATE)
 jobdf$DATE <- as.Date(jobdf$DATE)
 jobdf <- jobdf[jobdf$STATE == "Total", c(1, 4)]
 
-
 appdf$DATE <- as.Date(appdf$DATE)
 appdf <- appdf[appdf$STATE == "Total", c(1, 4)]
+appdf[appdf$DATE == '2023-06-01', "CA_SA_INDEX"] <- NA
 
 alldf <- merge(covdf, anzdf, by="DATE", all = T)
 alldf <- merge(alldf, pmidf, by="DATE", all = T)
@@ -174,192 +155,165 @@ alldf <- merge(alldf, jobdf, by="DATE", all = T)
 alldf <- merge(alldf, appdf, by="DATE", all = T)
 ```
 
-## Statistical summary of time series data
-
-After the data is processed and merged into a single dataset, we look at the summary statistic of all the indexes. As the available data of indexes are different in start and end period, the dataset includes missing data points for certain indexes.
-
-```{r statsum}
-
-summary(alldf)
-
+```{r, include=FALSE}
+asum <- data.frame(Dataset=c('All', 'NZAC', 'ANZ', 'PMI', 'PMI', 'PMI', 'PMI', 
+                              'PMI', 'PMI', 'SEEK Jobs', 'SEEK Ads'),
+                    Variable=c('DATE', 'NZAC', 'ACT_OUTLOOK', 'PMI', 'PRODUCTION', 
+                               'EMPLOYMENT', 'NEW_ORDERS', 'FINISHED_STOCKS',
+                               'DELIVERIES', 'ADS_SA_INDEX', 'CA_SA_INDEX'),
+                    Minimum=c('2003-10-01', '-13.605', '-55.10', '26.03', 
+                              '19.29', '38.77', '18.25', '36.23', '22.91', '29.57', '28.64'),
+                    Median=c('-', '2.797', '22.25', '53.35', 
+                             '53.92', '50.95', '55.61', '51.78', '53.43', '113.93', '107.7'),
+                    Mean=c('-', '2.772', '18.85', '53.00', 
+                           '53.52', '50.55', '54.77', '51.77', '52.69', '115.89', '117.1'),
+                    Maximum=c('2023-06-01', '33.801', '58.50', '64.21', 
+                              '68.09', '57.43', '70.48', '60.21', '63.69', '211.49', '284.7'),
+                    Missing=c('0', '22', '89', '8', '8', '8', '8', '8', '8', '1', '75'))
 ```
 
-## Time series Visualization 
+```{r}
+pander::pander(asum, 
+                split.table = Inf,
+                caption='Summary statistics for the final, merged dataset')
+```
 
-The plots below are showing the indexes over the period. They are grouped to show in the same plot for the relating meaning and scaling. Thus, there are 3 groups including 
+In Table 2 above, we show the summary statistics of the resultant dataset after preparation and merging.
 
-• activity indexes (NZAC index and activity outlook index)
+First we will state the definition for each of our variables which are shown in Table 2, and will be further used in the EDA below:
 
-• production indexes (PMI, PRODUCTION, EMPLOYMENT, NEW ORDERS, FINISHED STOCKS, AND DELIVERIES)
+[[]]
 
-• SEEK jobs indexes (Job Ads volumes index and Job application per ads volume index)
+* the ACT_OUTLOOK...
+* PMI
+* PRODUCTION
+* EMPLOYMENT
+* NEW_ORDERS
+* FINISHED_STOCKS
+* DELIVERIES
+* ADS_SA_INDEX
+* CA_SA_INDEX
 
-As per out project question regarding the possibility of NZAC index prediction. Thus NZAC index is base line for analysis. And we try to figure out  the other correlation between other indicators and NZAC index.
+Now looking at content of Table 2 above, our key takeaways are:
 
-There are many missing data points for Activity outlook index over the period. The pattern was fluctuating significantly.
+* All of the non-date data are numerical
+* The different variables have different ranges, with a few variables having negative values, but most are all positive. 
+* The NZAC in particular, has quite a large outlier at the higher end, with a mean of 2.772 and a maximum value of 33.801.
+* None of the variables show a large skew on either side, as the medians and means are fairly close in most respects.
+* ACT_OUTLOOK and CA_SA_INDEX had significantly more missing values than compared to other variables. There were no obvious patterns to these missing values as they fluctuated a lot.
 
-In the production group, all the indexes provide the similar pattern over the period. Thus, we can keep one index from this group for further analyzing on how this group index correlated to the NZAC index.
 
-In the job group, job applications per ads volumes index is derived from the other index (ads volumes index). This explains the contrast patterns between them. During recession 2008 and pandemic 2020, the ads volumes index decreased dramatically, where as the job applications per ads volumes index increased accordingly. Likewise, post-pandemic period recorded the opposite trend of these two indexes the other way arround.
+## Visualisation
 
-```{r viz, message=FALSE}
+Now onto the visualisations. Below we've divided this section into parts:
+
+* Variable correlations
+* NZAC vs most correlated plot
+* SEEK Ads vs Applications
+* NZAC decomposition
+
+We start with the variable correlations - this work was done first (after summary statistics etc) to inform further plots. Our objective is to identify which variables best correlate to our response, NZAC value, and to see whether there may be concerns of multicollinearity to be cognisant of in future modelling stages.
+
+```{r viz, include=FALSE}
 library(dplyr)
 library(tidyr)
 library(lubridate)
 library(ggplot2)
 library(forecast)
-```
-```{r, message=FALSE}
 
-ggplot(data = alldf, aes(DATE)) +
-  geom_line(aes(y=NZAC, colour='NZAC')) +
-  geom_line(aes(y=ACT_OUTLOOK, colour='ACT_OUTLOOK')) +
-  ylab('Index (%)') + 
-  theme_classic()
-
-
-ggplot(data = alldf, aes(DATE)) +
-  geom_line(aes(y=PMI, colour='PMI')) +
-  geom_line(aes(y=PRODUCTION, colour='PRODUCTION')) +
-  geom_line(aes(y=EMPLOYMENT, colour='EMPLOYMENT')) +
-  geom_line(aes(y=NEW_ORDERS, colour='NEW ORDERS')) +
-  geom_line(aes(y=FINISHED_STOCKS, colour='FINISHED STOCKS')) +
-  geom_line(aes(y=DELIVERIES, colour='DELIVERIES')) +
-  ylab('Index (%)') + 
-  theme_classic()
-
-ggplot(data = alldf, aes(DATE)) +
-  geom_line(aes(y=ADS_SA_INDEX, colour='Job Ads volumes index')) +
-  geom_line(aes(y=CA_SA_INDEX, colour='Job Applications per ads volumes index')) +
-  ylab('Index (%)') + 
-  theme_classic()
-
+cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
 
-### Correlation plotting
-```{r correlation}
+```{r correlation, include=FALSE}
 alldf <- merge(covdf, anzdf, by="DATE", all.x = T)
 alldf <- merge(alldf, pmidf, by="DATE", all.x = T)
 alldf <- merge(alldf, jobdf, by="DATE", all.x = T)
 alldf <- merge(alldf, appdf, by="DATE", all.x = T)
-library(ggcorrplot)
+
 corrmatrix <- alldf %>% select(NZAC, ACT_OUTLOOK, PMI, PRODUCTION,
                                EMPLOYMENT, NEW_ORDERS, FINISHED_STOCKS,
-                               DELIVERIES, ADS_SA_INDEX, CA_SA_INDEX) %>% cor()
+                               DELIVERIES, ADS_SA_INDEX, CA_SA_INDEX) %>% cor(use='pairwise.complete.obs')
 corrmatrix
 
-corrmatrix_2 <- alldf %>% select(NZAC, PMI, PRODUCTION,
-                               EMPLOYMENT, NEW_ORDERS, FINISHED_STOCKS,
-                               DELIVERIES, ADS_SA_INDEX) %>% cor()
-corrmatrix_2
+# corrmatrix_2 <- alldf %>% select(NZAC, PMI, PRODUCTION,
+#                                EMPLOYMENT, NEW_ORDERS, FINISHED_STOCKS,
+#                                DELIVERIES, ADS_SA_INDEX) %>% cor(method='spearman')
+# corrmatrix_2
+```
 
-ggcorrplot(corrmatrix_2,
-           hc.order = TRUE,
+```{r, fig.cap="Correlation Plot", fig.align='center'}
+library(ggcorrplot)
+
+ggcorrplot(corrmatrix,
+           hc.order = F,
            type = "lower",
-           lab = FALSE)
+           lab = T,
+           lab_size = 3,
+           title = "Variable Correlation Plot",
+           show.legend = F,
+           ggtheme = theme_minimal())
 ```
 
-### Decomposition Visualization
+First, the reader may want to note that the correlations seen in Figure 1 were made only on cases which had pairwise complete observations between the specific variables as we did have some missing values. We expect that ACT_OUTLOOK and CA_SA_INDEX may not be as accurate as the other variables as they had significantly more missing values. We use the default pearson correlation coefficient here.
 
-Following plots are showing the time series decomposition for each index. 
+The plot itself shows some interesting results:
 
-NZAC index pattern shows the impact of 3 main events during the period. Those were economic recession in 2008, the pandemic starting at the end of 2020 and the recovery after the pandemic since 2022 until now. Both 2008 recession and 2020 pandemic events caused a plunge in the NZAC index, but their patterns were different. The data shows that the NZAC index gradually decreased during 2008 bottomed at around -3%, while pointly drop to -10%. Post-pandemic recovers significantly in 2021 which peaked at over 30% (as it compares with last year drop -10%). 
+* The NZAC is moderately correlated to most of the predictors seen here, with correlations between 0.4-0.5 being common. 
+* CA_SA_INDEX is particularly interesting, as it appears to correlate more to a slower economy (the opposite from the other measures) as being a measure of job applications per job advertisement. This makes sense.
+* Consequently, the NZAC has a weak negative correlation with CA_SA_INDEX at -0.22.
+* PRODUCTION best correlates to the NZAC at 0.56, while ADS_SA_INDEX correlated the least at 0.15.
+* Additionally, we observe the potential for multicollinearity between PMI, PRODUCTION, NEW_ORDERS and potentially DELIVERIES. This is unsurprising given that these measures were all from the same dataset, and all aim to measure similar things, i.e., all new orders to manufacturers will need to be produced, and subsequently delivered.
 
-The seasonal patterns shows two hikes every year.
 
-```{r}
+```{r, fig.cap="NZAC and Production Values", fig.align='center'}
+ggplot(data = alldf, aes(DATE)) +
+  geom_line(aes(y=NZAC, colour='NZAC')) +
+  geom_line(aes(y=PRODUCTION, colour='Production')) +
+  ylab('Index (%)') + 
+  ggtitle('NZAC and Production Values over Time') + 
+  xlab('') + 
+  scale_colour_manual(values=cbPalette) +
+  theme_minimal()
+```
+
+The NZAC and PRODUCTION value plot seen in Figure 2 shows the NZAC in blank, and the PRODUCTION variable in yellow. NZAC is fairly table over the long-term, with some obvious deviations at key points in time - in the 2007/2008 Global Financial Crisis, and in 2020/2021 due to COVID-19. Interestingly, the shapes of the peaks are very different. In the GFC, there was a longer, but shallower decrease in the NZAC, while COVID produced a short, sharp negative peak - followed, about a year later, by a very large, but still short and sharp, upward deviation. Otherwise, this dataset is largely stable over time.
+
+For the PRODUCTION variable, there are clear signs of correlation visible - similar peaks can be seen during the small early peaks of 2004, the decreases in the GFC and the significant drop due to onset of COVID lockdowns. Interestingly, there is a slight peak coinciding with the large increase noted above somewhere into COVID, but not by as much. This may make sense as there may only be so much capacity that can be filled in a short time, and there may need to be additional infrastructure and staffing required to ramp up productivity much more than that, which cannot be done in that short of a time.
+
+
+```{r, fig.cap="SEEK Jobs data: Job Ads and Job Applications", fig.align='center'}
+ggplot(data = alldf, aes(DATE)) +
+  geom_line(aes(y=ADS_SA_INDEX, colour='Job Ad Volume')) +
+  geom_line(aes(y=CA_SA_INDEX, colour='Job Applications per Ad')) +
+  ylab('Index (%)') + 
+  ggtitle('Job Ads and Job Applications per Ad over Time') + 
+  scale_colour_manual(values=cbPalette) +
+  xlab("") + 
+  theme_minimal()
+```
+
+The SEEK job ads volumes and job applications per ad graph seen in Figure 3 tells a similar story. For the number of listed jobs, we see similar dips in the GFC and in early COVID, with a quick and resounding rebound about a year into COVID. A key difference in this plot is that there is a general upwards trend since 2004.
+
+The job applications per ad tell the same story, although perhaps from the other side of the coin. It makes intuitive sense that when there are less jobs, there will be more people competing for them, and when there are more jobs, there will be less demand. These variables together tell this story, and gives us reassurance and confidence in these points, and the effect that COVID had on job listing and applications.
+
+
+```{r, fig.cap="Temporal decomposition plot", fig.align='center'}
 minP <- min(covdf$DATE)
-covts <- covdf %>% arrange(DATE) %>% dplyr::select(NZAC) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
+covts <- covdf %>% 
+          arrange(DATE) %>% 
+          dplyr::select(NZAC) %>% 
+          ts(frequency = 12, 
+             start = c(year(minP),month(minP)))
 
-(covts[,1] %>% decompose(type="multiplicative") %>%
-    autoplot() + xlab('Time') %>% 
-    ggtitle("NZAC Index: Multiplicative decomposition")) %>%
+(covts[,1] %>% 
+    decompose(type="multiplicative") %>%
+    autoplot() + xlab('') %>% 
+    ggtitle("NZAC: Multiplicative decomposition")) %>%
     print()
-
-(ggseasonplot(covts[,1]) +
-    ggtitle("Seasonal plot: NZAC Index") +
-    xlab('Time')) %>% print()
-
-covts_pre <- covdf %>% filter(year(DATE) < 2020) %>% arrange(DATE) %>% dplyr::select(NZAC) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
-
-(ggseasonplot(covts_pre[,1]) +
-    ggtitle("Pre-pandemic - Seasonal plot: NZAC Index") +
-    xlab('Time')) %>% print()
 ```
 
-The PMI index trend is similar to NZAC index through out the period. Although the data is less smooth than the NZAC, this causes a recognizable more noise through out the entire period. 
-
-The seasonal patterns shows two hikes every year, with one dip in the middle of the year.
+This decomposition graph above in Figure 4 shows the effects of different timings on our data. First, the data itself is plotted above at the top, follow by the underlying trend, seasonality and whatever remains at the bottom (unexplained error). As noted previously, we see the effects of the GFC and COVID clearly. Additionally we see a long-term trend of about 2 units, and a roughly yearly seasonal effect of between 0.5-2 units, which appears to have two large peaks, with a smaller third. The real meat of this graph is in the remainders - there are large unexplained peaks, both positive and negative, which is understandable as this decomposition apparently could not predict the GFC, nor COVID. The data shows that the NZAC index gradually decreased during 2008, bottoming out at around -3%, while during the COVID-era, the index sharply dropped to -10%. There was a significant post-COVID recovery in 2021 which peaked at over 30% (as compared with previous years drop of -10%).
 
 
-Post pandemic, NZAC currently is flatten at around 0, while the PML is downward.
-
-```{r}
-minP <- min(pmidf$DATE)
-pmits <- pmidf %>% arrange(DATE) %>% dplyr::select(PMI) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
-
-(pmits[,1] %>% decompose(type="multiplicative") %>%
-    autoplot() + xlab('Time') %>% 
-    ggtitle("PMI Index: Multiplicative decomposition")) %>%
-    print()
-
-
-(ggseasonplot(pmits[,1]) +
-    ggtitle("Seasonal plot: PMI Index") +
-    xlab('Time')) %>% print()
-```
-
-Jobs ads volumes index shows a clear upward trend in the period. Likewise, there are two pattern due to the two mentioned big events, recording the short-time downward before continuing climb up later on.
-
-There is also clear seasonal patterns. There were big noise (remainder) during pandemic.
-
-Seasonal pattern is different from the other two indexes. It rises at the beginning of each year, then plummet to a dip before rising a gain to the end of the year.
-
-```{r}
-minP <- min(jobdf$DATE)
-jobts <- jobdf %>% arrange(DATE) %>% dplyr::select(ADS_SA_INDEX) %>% ts(frequency = 12, start = c(year(minP),month(minP)))
-
-(jobts[,1] %>% decompose(type="multiplicative") %>%
-    autoplot() + xlab('Time') %>% 
-    ggtitle("Job ads volumes Index: Multiplicative decomposition")) %>%
-    print()
-
-(ggseasonplot(jobts[,1]) +
-    ggtitle("Seasonal plot: Job Ads Volumes Index") +
-    xlab('Time')) %>% print()
-```
-
-
-# Individual Contributions [1 page]
-
-• State what contribution each member of the group made to the data preparation, the analysis
-and the report
-
-
-
-
-# Overall Report
-
-These marks will be awarded for overall presentation, clarity and quality of the report.
-In particular, marks will be awarded for
-
-• A clear logical layout
-
-• Keeping to the page limits for each section, and using sensible font size
-
-• Key facts being easily located
-
-• Readability of tables and plots
-
-• Clarity of expression [Note: for non-native speakers of English: your English does not need to be perfect, it is the logic and correctness of your presentation that is most important. Nevertheless you are advised to get someone to proof-read your proposal.]
-
-• Clear explanation of how your choice of exploratory plots and tables is relevant to your project, and how the ethical considerations apply to your project (i.e. not just a set of generalities)
-
-• Make sure each time you use/refer to someone else’s work you cite the source in the text, and include the reference in the list at the end. It does not need to be a long list; you may only need one or two references.
-
-• Referencing should be correctly done: a complete list of references must be included. You can use any referencing style you wish; APA is fine if that’s what you like.
-
-The report should be written in a formal style. It should not be an aspirational document about what you would like to do in the next phase; rather, it should state what steps you carried out in the project up to this point, although you may include a few comments at the end about what your next steps might be.
-
-
+# References
 
