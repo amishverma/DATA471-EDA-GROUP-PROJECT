@@ -46,7 +46,6 @@ There are no significant periods of missing date in the main index that we used,
 # Ethics, Privacy and Security
 
 ### Ethics
-
 The dataset is produced by the Treasury and published as part of the Statistics New Zealand COVID-19 data portal. This data is made available under the [Crown Copyright, Attribution 4.0 International (CC BY 4.0)](https://www.treasury.govt.nz/publications/nzac/nzac-qa-note) license which allows free use, adaptation and distribution of the data as long as the source is attributed, and a link to the license is provided (see earlier in the sentence).
 
 This dataset is derived from constituent datasets that are also publicly available as either full datasets, or as data products. As far as we can tell, none of these datasets have licensing at all - although we believe it is reasonable to expect that Treasury has permission to utilise these datasets and publicly release their derivative product under their own license, which we will respect in using this data.
@@ -57,14 +56,12 @@ The primary dataset has clear ownership, licensing/terms of use, and transparenc
 
 
 ### Privacy
-
 This dataset is a series of monthly values which is a combination of multiple datasets. We note that some of the constituent datasets are derived from surveys which may have individual-level, identifying data (although we have not seen these datasets publicly available - these are more likely to be seen as data products). As the final, available data is tightly aggregated, we do not see any potential for de-anonymisation or risk of identifying data being released.
 
 Based on the above, we do not believe there to be any obvious privacy issues with these datasets.
 
 
 ### Security
-
 In uploading/updating the dataset on the appropriate website, the organisation needs to ensure that only the necessary people have the ability to access and modify these files. This is an access control mechanism to limit exposure as to who could potentially upload something malicious, or perhaps more likely, reuse a password and let in a blackhat who may choose to do the same.
 
 We also need to be mindful here that the file itself is the correct one, and not some secret or embargoed data, and that it does not accidentally leak metadata (such as who worked on it, commentary from reviewers, exif data in case of images etc).
@@ -85,7 +82,6 @@ We do not have any specific counter-measures related to our project outside of g
 # Exploratory Data Analysis
 
 ### Data and Preparation
-
 In our analysis, we utilised the primary NZAC data, and four component datasets which included the ANZ Activity Outlook, BusinessNZ's Performance of Manufacturing Index, SEEK Job Ad Index and the SEEK Applications per Ad Index. In preparing the data for analysis, we first needed to:
 
 * Select the relevant columns for each indicator
@@ -180,8 +176,6 @@ pander::pander(asum,
 In Table 2 above, we show the summary statistics of the resultant dataset after preparation and merging.
 
 First we will state the definition for each of our variables which are shown in Table 2, and will be further used in the EDA below:
-
-[[]]
 
 * The ACT_OUTLOOK series is an activity index that is produced by ANZ based on their monthly surveys including business outlook, and heavy and light traffic indices.
 * The PMI series is the Performance of Manufacturing Index produced by Business New Zealand based on their monthly survey of the manufacturing sector.
