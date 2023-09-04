@@ -19,7 +19,7 @@ csl: vancouver.csl
 * Kim Downing (300 639 199):
   * Ethics, privacy and security section, project manager and editor
 
-* Amish Verma ([[]]):
+* Amish Verma ([[300 598 733]]):
   * EDA section and git
 
 
