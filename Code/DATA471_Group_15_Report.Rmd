@@ -128,7 +128,6 @@ appdf <- readxl::read_excel(path = '../Data/Seek_NZ_data_01-07-2023.xlsx',
 ```
 
 ```{r preprocess, include=FALSE}
-# Convert to date
 covdf <- covdf[covdf$series_name == 'New Zealand Activity Index (NZAC)', 
                c("parameter", "value")]
 colnames(covdf) <- c("DATE", "NZAC")
@@ -225,20 +224,10 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 ```
 
 ```{r correlation, include=FALSE}
-alldf <- merge(covdf, anzdf, by="DATE", all.x = T)
-alldf <- merge(alldf, pmidf, by="DATE", all.x = T)
-alldf <- merge(alldf, jobdf, by="DATE", all.x = T)
-alldf <- merge(alldf, appdf, by="DATE", all.x = T)
-
 corrmatrix <- alldf %>% select(NZAC, ACT_OUTLOOK, PMI, PRODUCTION,
                                EMPLOYMENT, NEW_ORDERS, FINISHED_STOCKS,
                                DELIVERIES, ADS_SA_INDEX, CA_SA_INDEX) %>% cor(use='pairwise.complete.obs')
 corrmatrix
-
-# corrmatrix_2 <- alldf %>% select(NZAC, PMI, PRODUCTION,
-#                                EMPLOYMENT, NEW_ORDERS, FINISHED_STOCKS,
-#                                DELIVERIES, ADS_SA_INDEX) %>% cor(method='spearman')
-# corrmatrix_2
 ```
 
 ```{r, fig.cap="Correlation Plot", fig.align='center'}
@@ -279,7 +268,6 @@ ggplot(data = alldf, aes(DATE)) +
 The NZAC and PRODUCTION value plot seen in Figure 2 shows the NZAC in blank, and the PRODUCTION variable in yellow. NZAC is fairly table over the long-term, with some obvious deviations at key points in time - in the 2007/2008 Global Financial Crisis, and in 2020/2021 due to COVID-19. Interestingly, the shapes of the peaks are very different. In the GFC, there was a longer, but shallower decrease in the NZAC, while COVID produced a short, sharp negative peak - followed, about a year later, by a very large, but still short and sharp, upward deviation. Otherwise, this dataset is largely stable over time.
 
 For the PRODUCTION variable, there are clear signs of correlation visible - similar peaks can be seen during the small early peaks of 2004, the decreases in the GFC and the significant drop due to onset of COVID lockdowns. Interestingly, there is a slight peak coinciding with the large increase noted above somewhere into COVID, but not by as much. This may make sense as there may only be so much capacity that can be filled in a short time, and there may need to be additional infrastructure and staffing required to ramp up productivity much more than that, which cannot be done in that short of a time.
-
 
 ```{r, fig.cap="SEEK Jobs data: Job Ads and Job Applications", fig.align='center'}
 ggplot(data = alldf, aes(DATE)) +
