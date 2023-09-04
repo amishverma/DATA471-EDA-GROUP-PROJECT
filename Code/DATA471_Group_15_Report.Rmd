@@ -183,15 +183,15 @@ First we will state the definition for each of our variables which are shown in 
 
 [[]]
 
-* the ACT_OUTLOOK...
-* PMI
-* PRODUCTION
-* EMPLOYMENT
-* NEW_ORDERS
-* FINISHED_STOCKS
-* DELIVERIES
-* ADS_SA_INDEX
-* CA_SA_INDEX
+* The ACT_OUTLOOK series is an activity index that is produced by ANZ based on their monthly surveys including business outlook, and heavy and light traffic indices.
+* The PMI series is the Performance of Manufacturing Index produced by Business New Zealand based on their monthly survey of the manufacturing sector.
+* The PRODUCTION variable is a sub-index of the PMI based on the production levels of the manufacturing sector for a given month.
+* The EMPLOYMENT variable is a sub-index of the PMI based on the employment levels of the manufacturing sector for a given month.
+* The NEW_ORDERS variable is a sub-index of the PMI based on the level of new orders in the manufacturing sector for a given month.
+* The FINISHED_STOCKS variable is a sub-index of the PMI based on the number of finished stocks in the manufacturing sector for a given month.
+* The DELIVERIES variable is a sub-index of the PMI based on the number of deliveries made in the manufacturing sector for a given month.
+* The ADS_SA_INDEX series is an index based on the number of job advertisements posted in New Zealand on Seek in a given month.
+* The CA_SA_INDEX series is an index based on the number of applications for a job advertisement posted in New Zealand on Seek in a given month.
 
 Now looking at content of Table 2 above, our key takeaways are:
 
