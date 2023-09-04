@@ -10,7 +10,7 @@ csl: vancouver.csl
 
 # Authors: Group 15
 
-* Izzy Bremnar ([[]]):
+* Izzy Bremner (300 487 890):
   * Background and data section, and supervisor representative
 
 * Tram Chau ([[]]):
