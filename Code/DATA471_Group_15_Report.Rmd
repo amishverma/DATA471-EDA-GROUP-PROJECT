@@ -13,13 +13,13 @@ csl: vancouver.csl
 * Izzy Bremner (300 487 890):
   * Background and data section, and supervisor representative
 
-* Tram Chau ([[300 643 163]]):
+* Tram Chau (300 643 163):
   * EDA section, discord/zoom, kanban and mind maps
 
 * Kim Downing (300 639 199):
   * Ethics, privacy and security section, project manager and editor
 
-* Amish Verma ([[300 598 733]]):
+* Amish Verma (300 598 733):
   * EDA section and git
 
 
